@@ -25,6 +25,7 @@ const {
 	ApplicationCommandType,
 	ContextMenuCommandBuilder,
 } = require('discord.js');
+const { log } = require('console');
 require('dotenv').config();
 
 const PREFIX = ';';
@@ -69,6 +70,11 @@ module.exports = {
 
 client.on('ready', (c) => {
 	console.log(`Discord bot running as: ${c.user.tag}`);
+});
+
+client.on('guildMemberAdd', (member) => {
+	member.roles.add('1151543087932375041');
+	console.log(`Added role to user: ${member.user.tag}`);
 });
 
 //! Command handler clasic
@@ -134,6 +140,23 @@ const cooldowns = new Map();
 
 client.on('messageCreate', async (message) => {
 	if (message.author.bot) return;
+
+	//! DELETE MESSAGES
+	if (
+		message.member.roles.cache.has('1151914700129452042') &&
+		message.author.id != '676503697252941856'
+	) {
+		client.channels.fetch('1151963482099568780').then((channel) => {
+			channel.send(`Deleted ${message.author.tag}: ${message.content}`);
+		});
+		console.log(`Deleted ${message.author.tag}: ${message.content}`);
+		return message.delete();
+	}
+
+	if (message.member.roles.cache.has('1151542641540993114')) {
+		message.react('💀');
+	}
+
 	if (!message.content.startsWith(PREFIX)) return;
 
 	const args = message.content.slice(PREFIX.length).split(/ +/);
