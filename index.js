@@ -71,6 +71,58 @@ client.on('ready', (c) => {
 	console.log(`Discord bot running as: ${c.user.tag}`);
 });
 
+/**
+ * @type {string[]}
+ */
+const createdVoiceChannels = JSON.parse(
+	fs.readFileSync('./database/createdVC.json')
+);
+client.on('voiceStateUpdate', (oldState, newState) => {
+	if (newState.channel?.id === '1158312453222965268') {
+		if (
+			createdVoiceChannels.includes(oldState?.channel?.id) &&
+			oldState.channel.members.size === 0
+		) {
+			oldState.channel.delete();
+			const index = createdVoiceChannels.indexOf(oldState.channel.id);
+			createdVoiceChannels.splice(index, 1);
+
+			fs.writeFileSync(
+				'./database/createdVC.json',
+				JSON.stringify(createdVoiceChannels, null, 2)
+			);
+		}
+
+		newState.guild.channels
+			.create({
+				name: `${newState.member.user.tag}'s Lobby`,
+				parent: '1149721671809372191',
+				reason: 'Why not',
+				type: DiscordJS.ChannelType.GuildVoice,
+			})
+			.then((newChannel) => {
+				newState.setChannel(newChannel, 'Created new vc');
+				newChannel.send({ content: 'Baf' });
+				createdVoiceChannels.push(newChannel.id);
+				fs.writeFileSync(
+					'./database/createdVC.json',
+					JSON.stringify(createdVoiceChannels, null, 2)
+				);
+			});
+	} else if (createdVoiceChannels.includes(oldState.channel.id)) {
+		if (oldState.channel.members.size !== 0) return;
+		oldState.channel.delete();
+		const index = createdVoiceChannels.indexOf(oldState.channel.id);
+		createdVoiceChannels.splice(index, 1);
+
+		fs.writeFileSync(
+			'./database/createdVC.json',
+			JSON.stringify(createdVoiceChannels, null, 2)
+		);
+		return;
+	}
+});
+
 //! Command handler clasic
 client.commands = new Collection();
 
